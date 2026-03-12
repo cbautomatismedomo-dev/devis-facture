@@ -179,7 +179,36 @@
             font-family: 'Barlow', sans-serif; outline: none;
         }
 
-        .signature-section { margin-top: 22px; display: flex; gap: 16px; }
+        /* ── Signature toggle ── */
+        .signature-toggle {
+            display: flex; align-items: center; gap: 8px;
+            margin-top: 22px; cursor: pointer; width: fit-content;
+            font-family: 'Barlow Condensed', sans-serif; font-size: 12px;
+            font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--mid); user-select: none; border: none; background: none;
+            padding: 6px 10px; border-radius: 4px; transition: background 0.15s;
+        }
+        .signature-toggle:hover { background: var(--azur-light); color: var(--azur); }
+        .toggle-icon {
+            width: 32px; height: 18px; border-radius: 9px;
+            background: var(--border); position: relative; transition: background 0.2s; flex-shrink: 0;
+        }
+        .toggle-icon::after {
+            content: ''; position: absolute; top: 3px; left: 3px;
+            width: 12px; height: 12px; border-radius: 50%;
+            background: white; transition: transform 0.2s;
+        }
+        .signature-toggle.on .toggle-icon { background: var(--azur); }
+        .signature-toggle.on .toggle-icon::after { transform: translateX(14px); }
+
+        .signature-section {
+            display: flex; gap: 16px;
+            overflow: hidden; max-height: 200px; opacity: 1;
+            transition: max-height 0.3s ease, opacity 0.2s ease, margin-top 0.3s ease;
+            margin-top: 14px;
+        }
+        .signature-section.hidden { max-height: 0; opacity: 0; margin-top: 0; }
+
         .signature-box { flex: 1; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; min-height: 100px; }
         .signature-box h5 {
             font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700;
@@ -203,13 +232,15 @@
 
         @media print {
             body { background: white; padding: 0; }
-            .tabs, .actions, .btn-row-group, .remove-btn, .no-print { display: none !important; }
+            .tabs, .actions, .btn-row-group, .remove-btn, .no-print, .signature-toggle { display: none !important; }
             .container { box-shadow: none; border-radius: 0; max-width: 100%; }
             .tab-content { padding: 18px 22px; }
             .editable-cell, input, select, textarea { border: none !important; background: transparent !important; }
             .category-row td { background: var(--azur-light) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .items-table th { background: var(--dark) !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .totals { background: var(--azur-light) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .signature-section.hidden { display: none !important; }
+            .signature-section { max-height: none !important; opacity: 1 !important; margin-top: 14px !important; }
         }
     </style>
 </head>
@@ -340,7 +371,12 @@
             </div>
         </div>
 
-        <div class="signature-section">
+        <button class="signature-toggle on no-print" onclick="toggleSignature(this, 'devis')">
+            <span class="toggle-icon"></span>
+            Encart signatures
+        </button>
+
+        <div class="signature-section" id="devis-signature">
             <div class="signature-box">
                 <h5>L'Entreprise</h5>
                 <div class="signature-line">Signature et cachet</div>
@@ -440,7 +476,12 @@
             </div>
         </div>
 
-        <div class="signature-section">
+        <button class="signature-toggle on no-print" onclick="toggleSignature(this, 'facture')">
+            <span class="toggle-icon"></span>
+            Encart signatures
+        </button>
+
+        <div class="signature-section" id="facture-signature">
             <div class="signature-box">
                 <h5>L'Entreprise</h5>
                 <div class="signature-line">Signature et cachet</div>
@@ -590,6 +631,11 @@
         calculateTotals(type);
     }
 
+    function toggleSignature(btn, type) {
+        btn.classList.toggle('on');
+        document.getElementById(type + '-signature').classList.toggle('hidden');
+    }
+
     function newDocument(type) {
         if (!confirm('Effacer et créer un nouveau document ?')) return;
         if (type === 'devis') {
@@ -607,6 +653,14 @@
         document.getElementById(type + '-clientName').value = '';
         document.getElementById(type + '-clientAddress').value = '';
         initializeDates(type);
+
+        // Réinitialiser le toggle signature à ON
+        const toggle = document.querySelector(`#${type}-content .signature-toggle`);
+        const sigSection = document.getElementById(type + '-signature');
+        if (toggle && !toggle.classList.contains('on')) {
+            toggle.classList.add('on');
+            sigSection.classList.remove('hidden');
+        }
     }
 </script>
 </body>
